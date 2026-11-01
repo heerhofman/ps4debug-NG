@@ -14,18 +14,18 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential clang lld llvm python3 binutils
+          sudo apt-get install -y build-essential clang lld llvm python3 binutils cmake ninja-build
 
-      - name: Build using original build script or python
+      - name: Build project
         run: |
           python3 -m pip install --upgrade pip || true
-          # Voer de build uit en zoek direct naar gegenereerde bestanden
-          ./build.sh || python3 -c "import os; os.system('make')" || true
-          
-      - name: Collect all compiled binaries and ELFs
+          ./build.sh || make || cmake --build build || true
+
+      - name: Find and collect all binaries and ELFs
         run: |
           mkdir -p output
-          find . -type f \( -name "*.bin" -o -name "*.elf" \) -exec cp {} output/ \;
+          # Zoek overal in de mappen naar .elf of .bin bestanden en kopieer ze naar output
+          find . -type f \( -name "*.elf" -o -name "*.bin" \) ! -path "./.git/*" -exec cp {} output/ \;
           ls -lh output/
 
       - name: Upload gecompileerde bestanden
