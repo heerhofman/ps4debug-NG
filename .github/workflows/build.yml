@@ -1,0 +1,31 @@
+name: Build PS4Debug-NG
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential clang lld llvm cmake python3 ninja-build binutils
+
+      - name: Run build.sh and keep ELF
+        run: |
+          chmod +x build.sh
+          ./build.sh
+          mkdir -p output
+          find . -maxdepth 3 \( -name "*.bin" -o -name "*.elf" \) -exec cp {} output/ \;
+          ls -lh output/
+
+      - name: Upload gecompileerde bestanden
+        uses: actions/upload-artifact@v4
+        with:
+          name: ps4debug-ng-1400-files
+          path: output/*
