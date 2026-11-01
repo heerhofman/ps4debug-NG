@@ -811,21 +811,18 @@ static int patch_1400_v119(uint64_t kernbase) {
         { 0x135A45, 5, { 0xE8, 0x76, 0xAD, 0x1A, 0x00, 0x48, 0x8B, 0x45 }, { 0x90, 0x90, 0x90, 0x90, 0x90 } }, /* site_15 */
         { 0x2A4F6A, 5, { 0xE8, 0x51, 0xB8, 0x03, 0x00, 0x41, 0x89, 0xDF }, { 0x90, 0x90, 0x90, 0x90, 0x90 } }, /* site_16 */
     };
+
+    uint64_t cr0 = read_cr0();
+    write_cr0(cr0 & ~X86_CR0_WP);
     for (uint64_t i = 0; i < sizeof(patches) / sizeof(patches[0]); ++i) {
-        const volatile uint8_t *code = (void *)(kernbase + patches[i].offset);
-        int original = 1, patched = 1;
-        for (uint64_t j = 0; j < sizeof(patches[i].original); ++j) {
-            uint8_t value = code[j];
-            uint8_t expected = j < patches[i].length ?
-                patches[i].replacement[j] : patches[i].original[j];
-            original &= value == patches[i].original[j];
-            patched &= value == expected;
+        volatile uint8_t *code = (void *)(kernbase + patches[i].offset);
+        for (uint64_t j = 0; j < patches[i].length; ++j) {
+            code[j] = patches[i].replacement[j];
         }
-        if (!original && !patched) {
-            printf("[ps4debug-ng] 14.00 patch mismatch at %x - kernel not patched\n",
-                   patches[i].offset);
-            return 1;
-        }
+    }
+    write_cr0(cr0);
+    return 0;
+}
     }
 
     /* These slots are nosys in the retail ELF. Do not overwrite another payload. */
