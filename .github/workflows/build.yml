@@ -16,19 +16,17 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential clang lld llvm cmake python3 ninja-build binutils
 
-      - name: Fix OS check in build.sh safely
+      - name: Direct CMake Build
         run: |
-          # Verwijder alleen de foutmelding en exit over de Ubuntu-versie
-          sed -i '/must be built in WSL/d' build.sh
-          sed -i '/found ubuntu/d' build.sh
-          sed -i 's/exit 1//g' build.sh
+          mkdir -p build
+          cd build
+          cmake ..
+          make -j$(nproc)
 
-      - name: Run original build.sh and keep ELF/bin
+      - name: Collect ELF and bin files
         run: |
-          chmod +x build.sh
-          ./build.sh
           mkdir -p output
-          find . -maxdepth 3 \( -name "*.bin" -o -name "*.elf" \) -exec cp {} output/ \;
+          find . -type f \( -name "*.bin" -o -name "*.elf" \) -exec cp {} output/ \;
           ls -lh output/
 
       - name: Upload gecompileerde bestanden
