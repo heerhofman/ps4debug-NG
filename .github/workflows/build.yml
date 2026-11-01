@@ -16,15 +16,15 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential clang lld llvm python3 binutils cmake ninja-build
 
-      - name: Build project
+      - name: Run build script and locate files
         run: |
-          python3 -m pip install --upgrade pip || true
-          ./build.sh || make || cmake --build build || true
+          chmod +x build.sh
+          ./build.sh || python3 build.py || make || true
 
-      - name: Find and collect all binaries and ELFs
+      - name: Force copy all build results
         run: |
           mkdir -p output
-          # Zoek overal in de mappen naar .elf of .bin bestanden en kopieer ze naar output
+          # Zoek naar alle .elf en .bin bestanden en kopieer ze direct naar output
           find . -type f \( -name "*.elf" -o -name "*.bin" \) ! -path "./.git/*" -exec cp {} output/ \;
           ls -lh output/
 
