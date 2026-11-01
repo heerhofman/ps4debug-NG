@@ -11,27 +11,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install toolchain
+      - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential clang lld llvm cmake python3 ninja-build binutils
+          sudo apt-get install -y build-essential clang lld llvm python3 binutils
 
-      - name: Force Build via Makefile/CMake
+      - name: Build using original build script or python
         run: |
-          if [ -f "Makefile" ]; then
-            make
-          elif [ -f "CMakeLists.txt" ]; then
-            mkdir -p build && cd build && cmake .. && make
-          else
-            DIR=$(find . -name "CMakeLists.txt" -maxdepth 2 -exec dirname {} \; | head -n 1)
-            echo "Found CMakeLists in: $DIR"
-            cd "$DIR"
-            mkdir -p build && cd build
-            cmake ..
-            make
-          fi
-        continue-on-error: true
-
+          python3 -m pip install --upgrade pip || true
+          # Voer de build uit en zoek direct naar gegenereerde bestanden
+          ./build.sh || python3 -c "import os; os.system('make')" || true
+          
       - name: Collect all compiled binaries and ELFs
         run: |
           mkdir -p output
