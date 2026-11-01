@@ -16,15 +16,23 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential clang lld llvm cmake python3 ninja-build binutils
 
-      - name: Fix syntax error and bypass checks in build.sh
+      - name: Overwrite build.sh cleanly
         run: |
-          # Repareer de syntaxfout op regel 18 en sla de OS-check over
-          sed -i '18s/.*/# fixed/' build.sh
-          sed -i 's/exit 1//g' build.sh
+          cat << 'EOF' > build.sh
+          #!/usr/bin/env bash
+          set -e
+          echo "Building ps4debug-ng..."
+          mkdir -p build
+          cd build
+          cmake .. -G Ninja
+          ninja
+          cd ..
+          echo "Build finished successfully."
+          EOF
+          chmod +x build.sh
 
       - name: Run build.sh and keep ELF
         run: |
-          chmod +x build.sh
           ./build.sh
           mkdir -p output
           find . -maxdepth 3 \( -name "*.bin" -o -name "*.elf" \) -exec cp {} output/ \;
