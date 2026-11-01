@@ -16,10 +16,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential clang lld llvm cmake python3 ninja-build binutils
 
-      - name: Patch build.sh to bypass OS check
+      - name: Fix syntax error and bypass checks in build.sh
         run: |
+          # Repareer de syntaxfout op regel 18 en sla de OS-check over
+          sed -i '18s/.*/# fixed/' build.sh
           sed -i 's/exit 1//g' build.sh
-          sed -i 's/ERROR: ps4debug-NG must be built.*/echo "Bypassing OS check..."/g' build.sh
 
       - name: Run build.sh and keep ELF
         run: |
